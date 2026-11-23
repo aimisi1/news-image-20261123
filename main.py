@@ -1,7 +1,8 @@
-"""Entry for make.fun news-image-20261123.
+"""Entry for make.fun news-image-20261123 (v2).
 
 Copies the entry image beside this file to the output directory.
-Standard library only, no network.
+Standard library only, no network, deterministic: the output is a
+byte-for-byte copy of entry.png, so running twice gives identical bytes.
 """
 import os
 import shutil
@@ -14,7 +15,7 @@ OUT_DIR = Path(os.environ.get("MAKEFUN_OUTPUT_DIR", "/output"))
 if not SRC.is_file():
     raise SystemExit(f"missing entry image: {SRC}")
 if SRC.read_bytes()[:8] != b"\x89PNG\r\n\x1a\n":
-    raise SystemExit("entry.png is not a PNG file")
+    raise SystemExit("entry.png is not a PNG file (bad magic bytes)")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 shutil.copyfile(SRC, OUT_DIR / "entry.png")
 print("wrote", OUT_DIR / "entry.png")

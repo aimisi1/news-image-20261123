@@ -1,7 +1,8 @@
-"""Build script (local only, not the entrypoint): draws entry.png.
+"""Build script (local only, not the entrypoint): draws entry.png v2.
 
 Run: python3 draw_front.py
 Writes entry.png beside this file, 1024x1024, white newspaper front page.
+v2: only 5 stories, all text >= 28px, big date, bold summit-table visual.
 """
 from PIL import Image, ImageDraw, ImageFont
 
@@ -13,9 +14,11 @@ INK = (20, 20, 20)
 GREY = (90, 90, 90)
 LIGHT = (238, 240, 243)
 TEAL = (0, 110, 110)
+SKY = (210, 232, 238)
+TABLE = (120, 72, 40)
+CHAIR = (60, 60, 60)
 
 SERIF = "/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf"
-SERIF_R = "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf"
 SANS = "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
 SANS_B = "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"
 
@@ -39,7 +42,7 @@ def wrap(draw, text, fnt, max_w):
 
 def text_block(draw, x, y, text, fnt, max_w, fill=INK, leading=None):
     lines = wrap(draw, text, fnt, max_w)
-    lh = leading or int(fnt.size * 1.22)
+    lh = leading or int(fnt.size * 1.28)
     for line in lines:
         draw.text((x, y), line, font=fnt, fill=fill)
         y += lh
@@ -48,62 +51,63 @@ def text_block(draw, x, y, text, fnt, max_w, fill=INK, leading=None):
 img = Image.new("RGB", (W, H), (255, 255, 255))
 d = ImageDraw.Draw(img)
 
-# Masthead
-d.rectangle([0, 0, W, 148], fill=NAVY)
-d.text((36, 18), "THE WORLD IN ONE DAY", font=font(SERIF, 56), fill=(255, 255, 255))
-d.text((36, 88), "MONDAY  23  NOVEMBER  2026", font=font(SANS_B, 34), fill=(255, 210, 110))
-d.rectangle([0, 148, W, 154], fill=GOLD)
+# Masthead: title + huge date
+d.rectangle([0, 0, W, 176], fill=NAVY)
+d.text((36, 16), "THE WORLD IN ONE DAY", font=font(SERIF, 56), fill=(255, 255, 255))
+d.text((36, 96), "MONDAY 23 NOVEMBER 2026", font=font(SANS_B, 44), fill=(255, 210, 110))
+d.rectangle([0, 176, W, 182], fill=GOLD)
 
-# Lead story: COP31, left text, right globe panel
-d.text((36, 172), "CLIMATE  •  COP31  •  ANTALYA, TURKEY", font=font(SANS_B, 22), fill=RED)
-d.text((36, 202), "COP31", font=font(SERIF, 78), fill=NAVY)
-d.text((36, 282), "COLLAPSES", font=font(SERIF, 78), fill=NAVY)
-text_block(d, 36, 372, "Nearly 200 countries fail to agree a climate declaration, as fossil-fuel divisions split the talks.", font(SANS, 26), 560, leading=33)
+# Lead story: COP31. Text left, summit-table visual right.
+d.text((36, 200), "CLIMATE  •  COP31  •  ANTALYA, TURKEY", font=font(SANS_B, 28), fill=RED)
+d.text((36, 238), "COP31", font=font(SERIF, 88), fill=NAVY)
+d.text((36, 326), "COLLAPSES", font=font(SERIF, 88), fill=NAVY)
+text_block(d, 36, 428, "Nearly 200 countries fail to agree a climate declaration.", font(SANS, 32), 540, leading=41)
 
-# Globe panel, right side
-gx, gy, gw, gh = 640, 170, 348, 250
-d.rounded_rectangle([gx, gy, gx + gw, gy + gh], radius=12, fill=(210, 232, 238), outline=NAVY, width=3)
-d.ellipse([gx + 84, gy + 28, gx + 264, gy + 208], fill=(70, 150, 190), outline=NAVY, width=3)
-# simple continents
-d.ellipse([gx + 120, gy + 55, gx + 175, gy + 105], fill=(90, 170, 90))
-d.ellipse([gx + 185, gy + 95, gx + 235, gy + 150], fill=(90, 170, 90))
-d.ellipse([gx + 135, gy + 140, gx + 180, gy + 180], fill=(120, 190, 100))
-# crack across the globe
-d.line([(gx + 130, gy + 40), (gx + 170, gy + 100), (gx + 150, gy + 140), (gx + 200, gy + 195)], fill=RED, width=6)
-d.text((gx + 18, gy + 214), "NO DEAL IN ANTALYA", font=font(SANS_B, 20), fill=RED)
+# Summit visual panel: an empty conference table, three empty chairs,
+# microphones with no one speaking, and a red crack across the table.
+px, py, pw, ph = 620, 198, 368, 300
+d.rounded_rectangle([px, py, px + pw, py + ph], radius=12, fill=SKY, outline=NAVY, width=3)
+# chairs (backs) behind the table
+for cx in (px + 48, px + 152, px + 256):
+    d.rounded_rectangle([cx, py + 52, cx + 64, py + 128], radius=10, fill=CHAIR)
+    d.rectangle([cx + 8, py + 128, cx + 56, py + 142], fill=CHAIR)
+# table
+d.polygon([(px + 18, py + 150), (px + pw - 18, py + 150),
+           (px + pw - 34, py + 236), (px + 34, py + 236)], fill=TABLE, outline=NAVY, width=2)
+# blank name plates on the table front: seats taken by no one
+for nx in (px + 66, px + 170, px + 274):
+    d.rectangle([nx, py + 186, nx + 56, py + 214], fill=(255, 255, 255), outline=NAVY, width=2)
+# red crack across the table and floor
+d.line([(px + 150, py + 150), (px + 190, py + 190), (px + 168, py + 220),
+        (px + 210, py + 252)], fill=RED, width=7)
+d.text((px + 22, py + 258), "NO DEAL IN ANTALYA", font=font(SANS_B, 28), fill=RED)
 
-# Second story: US House band
-d.rectangle([36, 448, 988, 580], fill=LIGHT, outline=NAVY, width=2)
-d.text((56, 462), "UNITED STATES  •  HOUSE OF REPRESENTATIVES", font=font(SANS_B, 21), fill=NAVY)
-d.text((56, 492), "Democrats win House majority", font=font(SERIF, 40), fill=INK)
-d.text((56, 540), "At least 258 seats — the largest since 1992.", font=font(SANS, 25), fill=INK)
-d.text((830, 468), "258", font=font(SERIF, 82), fill=RED)
-d.text((838, 552), "SEATS", font=font(SANS_B, 20), fill=RED)
+# Second story: US House, full-width band
+d.rectangle([36, 544, 988, 712], fill=LIGHT, outline=NAVY, width=2)
+d.text((56, 560), "UNITED STATES  •  HOUSE", font=font(SANS_B, 28), fill=NAVY)
+d.text((56, 596), "Democrats win House majority", font=font(SERIF, 52), fill=INK)
+d.text((56, 660), "At least 258 seats — the largest since 1992.", font=font(SANS, 30), fill=INK)
+d.text((812, 558), "258", font=font(SERIF, 108), fill=RED)
+d.text((828, 668), "SEATS", font=font(SANS_B, 28), fill=RED)
 
-# Grid of six smaller stories, 3 columns x 2 rows
-stories = [
-    ("SUMMIT", "Xi, Trump and Putin meet in first trilateral talks", "🌐"),
-    ("UKRAINE", "Sea drones strike a Russian warship; Russia tows a ship hit in the Baltic", "⚓"),
-    ("KYIV", "Russian strikes kill several people in the Kyiv region, Ukraine says", "✚"),
-    ("MEXICO", "Mexico captures a drug kingpin on the FBI most-wanted list", "★"),
-    ("ISRAEL", "Israel probes West Bank fires blamed on settlers; coalition talks fail", "☀"),
-    ("NORTH KOREA", "Kim says North Korea seeks security, not supremacy", "⬢"),
+# Three large cards, one row
+cards = [
+    ("SUMMIT", "Xi, Trump and Putin meet in first trilateral talks",
+     "First three-way talks"),
+    ("UKRAINE", "Sea drones strike a Russian warship in Libya",
+     "Ship hit in the Baltic"),
+    ("MEXICO", "Mexico captures a drug kingpin on the FBI most-wanted list",
+     "Deadly firefight"),
 ]
-# icons are drawn as simple shapes instead of emoji (fonts may lack them); use a coloured dot + letter
-col_w, row_h = 304, 168
-x0, y0 = 36, 606
-for i, (kicker, headline, _icon) in enumerate(stories):
-    cx = x0 + (i % 3) * (col_w + 20)
-    cy = y0 + (i // 3) * row_h
-    d.rectangle([cx, cy, cx + col_w, cy + row_h - 16], outline=(180, 180, 180), width=1)
-    d.rectangle([cx, cy, cx + col_w, cy + 34], fill=NAVY)
-    d.text((cx + 12, cy + 6), kicker, font=font(SANS_B, 19), fill=(255, 255, 255))
-    text_block(d, cx + 12, cy + 48, headline, font(SANS, 24), col_w - 24, leading=30)
-
-# Also strip at the bottom, wrapped so nothing is cut off
-d.rectangle([36, 954, 988, 958], fill=GOLD)
-text_block(d, 36, 966, "ALSO: Indonesia factory fire — 3 dead, 36 missing  •  Sudan strikes hit homes and a UN building  •  Alcaraz wins first ATP Finals title",
-           font(SANS, 19), 952, fill=GREY, leading=24)
+cw, ch = 304, 252
+x0, y0 = 36, 740
+for i, (kicker, headline, sub) in enumerate(cards):
+    cx = x0 + i * (cw + 20)
+    d.rectangle([cx, y0, cx + cw, y0 + ch], outline=(180, 180, 180), width=2)
+    d.rectangle([cx, y0, cx + cw, y0 + 44], fill=NAVY)
+    d.text((cx + 14, y0 + 8), kicker, font=font(SANS_B, 28), fill=(255, 255, 255))
+    y = text_block(d, cx + 14, y0 + 62, headline, font(SANS, 30), cw - 28, leading=39)
+    text_block(d, cx + 14, y + 10, sub, font(SANS, 28), cw - 28, fill=GREY, leading=36)
 
 img.save("entry.png", optimize=True)
 print("saved entry.png", img.size)
